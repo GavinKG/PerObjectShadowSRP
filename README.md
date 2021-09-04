@@ -1,8 +1,14 @@
-# Per Object Shadow Implementation using Unity SRP
+# Per-Object Shadow Implementation in Unity SRP
+
+![PerObjectShadowPass](README.md.assets/PerObjectShadowPass.png)
+
+*当前该项目仍处于开发阶段。*
 
 
 
 ## 简介
+
+![Scene](README.md.assets/Scene.png)
 
 该项目使用 Unity SRP 实现逐物件阴影。此种阴影解决方案主要适用于场景静态光源下绘制动态物体阴影（可以参考 UE4 的实现），也可以用来在后处理阶段直接 Blend 到屏幕上实现假阴影（类似于 Unlit 贴花），供低端移动设备使用。
 
@@ -22,18 +28,17 @@ Pass #2: Resolve Pass
 		resolve light attenuation (shadowed) to output color attachment
 ```
 
-// todo: 补图（原理/预览）
-
-*当前该项目仍积极开发中。*
-
 
 
 ## 功能和优化
 
-* 项目基于 SRP 开发，支持 URP 的 Renderer Feature 添加自定义 Pass，并未改动 SRP 管线源代码，可直接集成到 URP 中，也可以进行少量移植操作实现在自定义 SRP 中。
+![settings](README.md.assets/settings.png)
+
+* 项目基于 SRP 开发，支持 URP 的 Renderer Feature 添加自定义 Pass，**并未改动 SRP 管线源代码**，可直接集成到 URP 中，也可以进行少量移植操作实现在自定义 SRP 中。
 * 在未改动的 URP 中，只需添加一个逐物件阴影管理单例类即可无感化使用逐物件阴影功能，在自定义管线中将上述单例类直接实现在管线中 `ScriptableRenderer` 的继承类。同时，为了减少场景的查询开销，该解决方案也提供物体的注册/解除注册接口，允许手动控制需要绘制的物体。
-* 绘制 Screen-space Shadow Map（或直接绘制在场景最终颜色上实现假阴影）时，Resolve Pass 使用 GPU Instancing 绘制，减少 Draw Call。
-* 物体会根据屏幕空间占比动态调整其在阴影 atlas 纹理（`PerObjectShadowAtlas`）上的大小，尽量保证阴影 texel 在屏幕占比恒定，并提升性能。所有 slice 在 atlas 纹理上紧密排列，可能会减少 Texture Cache Miss（有待验证）。
+* 绘制 Screen-space Shadow Map（或直接绘制在场景最终颜色上实现假阴影）时，Resolve Pass 使用 GPU Instancing 绘制，**仅需要 1 个 Draw Call** 即可完成。
+* 物体会根据屏幕空间占比**动态调整其在阴影 atlas 纹理上的分辨率**（使用2的整数次幂避免动态锯齿），尽量保证阴影 texel 在屏幕占比恒定，并提升性能。
+* 所有 slice 在 atlas 纹理上紧密排列，可能会减少 Texture Cache Miss（有待验证）。
 * 支持主流平台和图形 API，目前已经在支持 Direct3D, OpenGL / GLES3+, Vulkan 图形 API 的 PC 和 Android 平台上测试通过（Metal 和 macOS / iOS 有待测试）。
 
 
@@ -67,17 +72,8 @@ Pass #2: Resolve Pass
 
 ### 示例工程列表
 
+![PerObjectShadowResolvePass](README.md.assets/PerObjectShadowResolvePass.png)
+
+![FinalImage](README.md.assets/FinalImage.png)
+
 // todo
-
-
-
-## todos
-
-### Project related
-
-- [ ] Editor 面板
-- [ ] 支持场景 main directional light
-- [ ] Distance Fade
-
-### README related
-
